@@ -10,6 +10,8 @@
 		24DF97BF58BD8F44BCE74556 /* Pods_WeatherApp_WeatherAppUITests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A030D53BDC787954AF72B9D7 /* Pods_WeatherApp_WeatherAppUITests.framework */; };
 		751DD62F65496BB5D46E33AF /* Pods_WeatherAppTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = D55F195FD1C32675F0A21544 /* Pods_WeatherAppTests.framework */; };
 		85C05B6A9BC17F3ECCEC6C78 /* Pods_WeatherApp.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8EB37634BAE066C9862226C4 /* Pods_WeatherApp.framework */; };
+		A80D5852247FE5CD0093770A /* Helper.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80D5851247FE5CD0093770A /* Helper.swift */; };
+		A80D5854247FEC6E0093770A /* CityTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A80D5853247FEC6E0093770A /* CityTableViewCell.swift */; };
 		A823AEE8247D558100A69571 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A823AEE7247D558100A69571 /* AppDelegate.swift */; };
 		A823AEEA247D558100A69571 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A823AEE9247D558100A69571 /* SceneDelegate.swift */; };
 		A823AEEC247D558100A69571 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A823AEEB247D558100A69571 /* ViewController.swift */; };
@@ -46,6 +48,8 @@
 		8EB37634BAE066C9862226C4 /* Pods_WeatherApp.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WeatherApp.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A030D53BDC787954AF72B9D7 /* Pods_WeatherApp_WeatherAppUITests.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_WeatherApp_WeatherAppUITests.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		A4C793F4BBB921394C103C26 /* Pods-WeatherApp-WeatherAppUITests.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-WeatherApp-WeatherAppUITests.release.xcconfig"; path = "Target Support Files/Pods-WeatherApp-WeatherAppUITests/Pods-WeatherApp-WeatherAppUITests.release.xcconfig"; sourceTree = "<group>"; };
+		A80D5851247FE5CD0093770A /* Helper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Helper.swift; sourceTree = "<group>"; };
+		A80D5853247FEC6E0093770A /* CityTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CityTableViewCell.swift; sourceTree = "<group>"; };
 		A823AEE4247D558100A69571 /* WeatherApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WeatherApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		A823AEE7247D558100A69571 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		A823AEE9247D558100A69571 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -113,7 +117,6 @@
 				064ECC38C48590A68C8D64DC /* Pods-WeatherAppTests.debug.xcconfig */,
 				4D926622FD2B679DCF3D7142 /* Pods-WeatherAppTests.release.xcconfig */,
 			);
-			name = Pods;
 			path = Pods;
 			sourceTree = "<group>";
 		};
@@ -145,11 +148,13 @@
 				A823AEE7247D558100A69571 /* AppDelegate.swift */,
 				A823AEE9247D558100A69571 /* SceneDelegate.swift */,
 				A823AEEB247D558100A69571 /* ViewController.swift */,
+				A80D5853247FEC6E0093770A /* CityTableViewCell.swift */,
 				A823AEED247D558100A69571 /* Main.storyboard */,
 				A823AEF3247D558200A69571 /* Assets.xcassets */,
 				A823AEF5247D558200A69571 /* LaunchScreen.storyboard */,
 				A823AEF8247D558200A69571 /* Info.plist */,
 				A823AEF0247D558100A69571 /* WeatherApp.xcdatamodeld */,
+				A80D5851247FE5CD0093770A /* Helper.swift */,
 			);
 			path = WeatherApp;
 			sourceTree = "<group>";
@@ -375,8 +380,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A80D5854247FEC6E0093770A /* CityTableViewCell.swift in Sources */,
 				A823AEF2247D558100A69571 /* WeatherApp.xcdatamodeld in Sources */,
 				A823AEEC247D558100A69571 /* ViewController.swift in Sources */,
+				A80D5852247FE5CD0093770A /* Helper.swift in Sources */,
 				A823AEE8247D558100A69571 /* AppDelegate.swift in Sources */,
 				A823AEEA247D558100A69571 /* SceneDelegate.swift in Sources */,
 			);
