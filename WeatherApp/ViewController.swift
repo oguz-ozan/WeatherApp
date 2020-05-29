@@ -12,16 +12,50 @@ import Foundation
 
 class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
 
-    
+    // REMAINING TASKS
+    //  1. Get Users Location and make API Call. UserDefaultsa eklediginde otomatikman ViewDidAppear fonksiyonunda calısacak.
+    //  2. Detailed View araştırması yap. Ona göre 7 günlük ileriye dönük API Call yapılacak, sonuç detailed view içinde bastırılacak.
+    //  3. Sort yapılabilir. (Kesinlikle optional!!)
     @IBOutlet weak var tableView: UITableView!
 
     var Weathers : [Weather] = [Weather]()
-    var cities = ["izmir","istanbul","konya"]
+    var baseCities = ["koeln","helsinki","nairobi","izmir","istanbul","barcelona"]
     var apiCallCount = 0
+    var cities = [String]()
+    var tmpCelsius : Bool = true
     
-    
+    override func viewDidAppear(_ animated: Bool) {
+        let defaults = UserDefaults.standard
+        guard let citys = defaults.stringArray(forKey: "cities") else {
+            return
+        }
+
+        cities = citys
+        if(apiCallCount != 0){
+            var new_weather = Weather()
+            new_weather.city = cities[cities.count-1]
+            Weathers.append(new_weather)
+            apiCall(cities[cities.count-1],4)
+            print("cities count is \(cities.count) and apicallcount is: \(apiCallCount)" )
+
+        }
+        // no need for that
+        //self.tableView.reloadData()
+    }
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        
+        // UserDefaults Settings. Bossa olusturuyor. Doluysa cities String arrayine yukluyor.
+        let defaults = UserDefaults.standard
+        guard let citys = UserDefaults.standard.stringArray(forKey: "cities") else{
+            defaults.set(baseCities, forKey: "cities")
+            print("Cities adlı UserDefaults Arrayi Olusturuldu.")
+            return
+        }
+            cities = citys
+    
+        
         // Array bos ise api Call ile Arrayi dolduruyoruz.
         if(Weathers.count == 0){
             print("Weather count: 0")
@@ -34,34 +68,46 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         }
         }
         
-       
-        
-        
-        // Coredata şuanlık kullanmaya gerek yok çünkü APIden anlık veri çekiyoruz.
-//        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-//        let context = appDelegate.persistentContainer.viewContext
-//        let request = NSFetchRequest<Weather>(entityName: "Weather")
-//
-//        Weathers = try! context.fetch(request)
         
         // Do any additional setup after loading the view.
     }
 
     internal func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 3
+        return cities.count
+    }
+    
+    internal func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath){
+        if(editingStyle == .delete){
+            let currentCell = tableView.cellForRow(at: indexPath) as! CityTableViewCell
+            guard let str = currentCell.cityLabel.text
+                else{
+                    print("null value geldi.")
+                    return
+                }
+            let defaults = UserDefaults.standard
+            cities = defaults.stringArray(forKey: "cities") ?? [String]()
+            let index = cities.firstIndex(of: str.lowercased())!
+            print("index is: \(index) and the value is: \(cities[index])"  )
+            cities.remove(at: index)
+            defaults.set(cities, forKey: "cities")
+            tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.fade)
+        }
     }
     
     internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
-//     let cell = UITableViewCell(style: UITableViewCell.CellStyle.default, reuseIdentifier: "Cell")
-//        cell.textLabel?.text = cellContent[indexPath.row]
-//        return cell
         let cell = tableView.dequeueReusableCell(withIdentifier: "CityTableViewCell", for: indexPath) as! CityTableViewCell
         cell.celsiusLabel.text = String(Weathers[indexPath.row].temperature)
         cell.cityLabel.text = Weathers[indexPath.row].city
         
         // uiimage halledilecek
-        //cell.weatherStatusLabel.text = Weathers[indexPath.row].status
+        
+        cell.weatherStatusLabel.text = Weathers[indexPath.row].status
+         
+        guard Weathers[indexPath.row].status == "" else{
+        cell.backgroundColor = UIColor(patternImage: UIImage(named: Weathers[indexPath.row].status)!)
+            return cell
+        }
         return cell
     }
     
@@ -73,12 +119,19 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         if let url = URL(string: url_string) {
            // the url
             URLSession.shared.dataTask(with: url) { data, response, error in
-               if let data = data {
+                
+                guard let data = data, error == nil,
+                let httpUrlResponse = response as? HTTPURLResponse, httpUrlResponse.statusCode == 200 else {
+                    print("Guardin icine girildi. May be HTTP error")
+                    return
+                }
                 do{
                     let stories = try JSONDecoder().decode(UltimateResult.self, from: data)
                     
-                    res_weather.city = stories.name
-                    res_weather.temperature = (stories.main?.temp)!
+                    res_weather.city = city
+                    var tempRes:Double = (stories.main?.temp)!-273.15
+                    res_weather.temperature = round(tempRes)
+  
                     res_weather.status = (stories.weather?[0].main)!
                     print("apicallcount is : " + String(self.apiCallCount))
                     self.Weathers[self.apiCallCount] = res_weather
@@ -86,10 +139,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                     print(String(format: "city is %@, tmp is %f, status is %@", self.Weathers[self.apiCallCount].city, self.Weathers[self.apiCallCount].temperature,  self.Weathers[self.apiCallCount].status))
                 }
                 catch let error {
-                        print("Json Parse Error : \(error)")
+                    print("Json Parse Error with: \(city) and the error is: \(error)")
                   }
                
-                }
+                
                 self.apiCallCount += 1
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
@@ -100,7 +153,39 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
          
     }
     
+  
+    @IBAction func switchTemperatues(_ sender: Any) {
+        print("in")
+        for i in 0..<Weathers.count{
+            var item = Weathers[i]
+             if(tmpCelsius){
+                print("item temp before: \(item.temperature)")
+                item.temperature = celciusToFahrenheit(item.temperature)
+                print("item temp after: \(item.temperature)")
+                       }else{
+                print("item temp before: \(item.temperature)")
+                item.temperature = fahrenheitToCelcius(item.temperature)
+                print("item temp after: \(item.temperature)")
+                       }
+            Weathers[i].temperature = item.temperature
+        }
+        tmpCelsius = !tmpCelsius
+        tableView.reloadData()
+    }
+    
+    func fahrenheitToCelcius(_ degree : Double) -> Double{
+        
+         return round((degree-32) / 1.8)
+        
+    }
+
+    func celciusToFahrenheit(_ degree : Double) -> Double{
+        
+         return round(degree * 1.8) + 32
+    }
 }
+
+
 
 struct UltimateResult : Decodable{
     var name:String = ""
@@ -114,12 +199,12 @@ struct UltimateResult : Decodable{
     var weather : [Weatherr]?
     var coord : Coord?
     var dt:Int = 0
-    var visibility:Int = 0
+    //var visibility:Int = 0
     var base:String = ""
 }
 struct Sys : Decodable{
-    var type : Int = 0
-    var id : Int = 0
+    //var type : Int = 0
+    //var id : Int = 0
     var country: String = ""
     var sunrise: Int = 0
     var sunset: Int = 0
@@ -128,7 +213,7 @@ struct Clouds : Decodable{
     var all : Int = 0
 }
 struct Wind : Decodable{
-    var deg : Double = 0.0
+    //var deg : Double = 0.0
     var speed : Double = 0.0
 }
 struct Main : Decodable {

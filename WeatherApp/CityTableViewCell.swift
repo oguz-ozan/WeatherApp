@@ -10,7 +10,7 @@ import UIKit
 
 class CityTableViewCell: UITableViewCell {
 
-    @IBOutlet weak var weatherStatusLabel: UIImageView!
+    @IBOutlet weak var weatherStatusLabel: UILabel!
     @IBOutlet weak var cityLabel: UILabel!
     @IBOutlet weak var celsiusLabel: UILabel!
     override func awakeFromNib() {
