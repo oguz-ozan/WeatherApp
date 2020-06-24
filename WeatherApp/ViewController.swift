@@ -9,13 +9,12 @@
 import UIKit
 import CoreData
 import Foundation
+import CoreLocation
 
-class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
+class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSource,CLLocationManagerDelegate {
 
     // REMAINING TASKS
-    //  1. Get Users Location and make API Call. UserDefaultsa eklediginde otomatikman ViewDidAppear fonksiyonunda calısacak.
     //  2. Detailed View araştırması yap. Ona göre 7 günlük ileriye dönük API Call yapılacak, sonuç detailed view içinde bastırılacak.
-    //  3. Sort yapılabilir. (Kesinlikle optional!!)
     @IBOutlet weak var tableView: UITableView!
 
     var Weathers : [Weather] = [Weather]()
@@ -23,9 +22,14 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     var apiCallCount = 0
     var cities = [String]()
     var tmpCelsius : Bool = true
+    var locationManager:CLLocationManager!
+    var myLocation = ""
+    var alertMessage = false
     
     override func viewDidAppear(_ animated: Bool) {
+        
           print("viewDidAppear called")
+        
         let defaults = UserDefaults.standard
         guard let citys = defaults.stringArray(forKey: "cities") else {
             return
@@ -47,6 +51,15 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         super.viewDidLoad()
         print("viewDidLoad called")
         
+        locationManager = CLLocationManager()
+        locationManager.delegate = self
+        locationManager.desiredAccuracy = kCLLocationAccuracyBest
+        locationManager.requestAlwaysAuthorization()
+
+        if CLLocationManager.locationServicesEnabled(){
+            locationManager.startUpdatingLocation()
+        }
+        
         
         // UserDefaults Settings. Bossa olusturuyor. Doluysa cities String arrayine yukluyor.
         let defaults = UserDefaults.standard
@@ -55,6 +68,10 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             print("Cities adlı UserDefaults Arrayi Olusturuldu.")
             return
         }
+            //defaults.set(baseCities, forKey: "cities")
+
+
+        
             cities = citys
     
         
@@ -88,7 +105,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 }
             let defaults = UserDefaults.standard
             cities = defaults.stringArray(forKey: "cities") ?? [String]()
-            let index = cities.firstIndex(of: str.lowercased())!
+            let index = cities.firstIndex(of: str.lowercased().replacingOccurrences(of: " ", with: "%20"))!
             print("index is: \(index) and the value is: \(cities[index])")
             var i = 0
             for weather in Weathers{
@@ -110,8 +127,15 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     internal func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell
     {
         let cell = tableView.dequeueReusableCell(withIdentifier: "CityTableViewCell", for: indexPath) as! CityTableViewCell
-        cell.celsiusLabel.text = String(Weathers[indexPath.row].temperature)
-        cell.cityLabel.text = Weathers[indexPath.row].city
+        if(tmpCelsius){
+            cell.celsiusLabel.text = String(Weathers[indexPath.row].temperature) + " °C"
+        }else{
+            cell.celsiusLabel.text = String(Weathers[indexPath.row].temperature) + " °F"
+        }
+        
+        
+        var newstr = Weathers[indexPath.row].city.replacingOccurrences(of: "%20", with: " ")
+        cell.cityLabel.text = newstr
         
         // uiimage halledilecek
         
@@ -122,6 +146,40 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             return cell
         }
         return cell
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let userLocation :CLLocation = locations[0] as CLLocation
+
+        print("user latitude = \(userLocation.coordinate.latitude)")
+        print("user longitude = \(userLocation.coordinate.longitude)")
+
+    //    self.labelLat.text = "\(userLocation.coordinate.latitude)"
+    //    self.labelLongi.text = "\(userLocation.coordinate.longitude)"
+
+        let geocoder = CLGeocoder()
+        geocoder.reverseGeocodeLocation(userLocation) { (placemarks, error) in
+            if (error != nil){
+                print("error in reverseGeocode")
+            }
+            let placemark = placemarks! as [CLPlacemark]
+            if placemark.count>0{
+                let placemark = placemarks![0]
+                print("Your location is: \(placemark.locality!), \(placemark.administrativeArea!), \(placemark.country!)")
+                guard let str = placemark.locality else{
+                    print("error in location stage")
+                    return
+                }
+                self.myLocation = str
+
+                //self.labelAdd.text = "\(placemark.locality!), \(placemark.administrativeArea!), \(placemark.country!)"
+            }
+        }
+
+    }
+
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Error \(error)")
     }
     
     func apiCall(_ city : String, _ index: Int) {
@@ -136,6 +194,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                 guard let data = data, error == nil,
                 let httpUrlResponse = response as? HTTPURLResponse, httpUrlResponse.statusCode == 200 else {
                     print("Guardin icine girildi. May be HTTP error")
+                    self.alertMessage = true
+                    self.Weathers.remove(at: self.Weathers.count-1)
+                    let defaults = UserDefaults.standard
+                    var citys = defaults.stringArray(forKey: "cities")
+                    citys!.remove(at: citys!.count-1)
+                    defaults.set(citys, forKey: "cities")
+                    
                     return
                 }
                 do{
@@ -155,13 +220,19 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
                     print("Json Parse Error with: \(city) and the error is: \(error)")
                   }
                
-                
                 self.apiCallCount += 1
                 DispatchQueue.main.async {
                     self.tableView.reloadData()
                 }
             }.resume()
            
+        }
+    }
+    
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        if segue.identifier == "addCity"{
+            let destinationVC = segue.destination as! AddCityViewController
+            destinationVC.name = myLocation
         }
     }
     
@@ -249,4 +320,6 @@ struct Weather {
     var temperature:Double = 0.0
     var status: String = ""
 }
+
+
 
