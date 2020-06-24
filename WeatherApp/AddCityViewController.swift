@@ -30,6 +30,7 @@ class AddCityViewController: UIViewController {
             return
         }
         cities.append(str)
+        print("eklenecek olan sehir" + str)
         defaults.set(cities, forKey: "cities")
          _ = navigationController?.popViewController(animated: true)
     }

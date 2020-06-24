@@ -19,12 +19,13 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     @IBOutlet weak var tableView: UITableView!
 
     var Weathers : [Weather] = [Weather]()
-    var baseCities = ["koeln","helsinki","nairobi","izmir","istanbul","barcelona"]
+    var baseCities = ["koeln","helsinki"]
     var apiCallCount = 0
     var cities = [String]()
     var tmpCelsius : Bool = true
     
     override func viewDidAppear(_ animated: Bool) {
+          print("viewDidAppear called")
         let defaults = UserDefaults.standard
         guard let citys = defaults.stringArray(forKey: "cities") else {
             return
@@ -36,7 +37,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             new_weather.city = cities[cities.count-1]
             Weathers.append(new_weather)
             apiCall(cities[cities.count-1],4)
-            print("cities count is \(cities.count) and apicallcount is: \(apiCallCount)" )
+            print("cities count is \(cities.count) and apicallcount is: \(apiCallCount) Weathers count is: \(Weathers.count)" )
 
         }
         // no need for that
@@ -44,6 +45,7 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
     }
     override func viewDidLoad() {
         super.viewDidLoad()
+        print("viewDidLoad called")
         
         
         // UserDefaults Settings. Bossa olusturuyor. Doluysa cities String arrayine yukluyor.
@@ -87,10 +89,21 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             let defaults = UserDefaults.standard
             cities = defaults.stringArray(forKey: "cities") ?? [String]()
             let index = cities.firstIndex(of: str.lowercased())!
-            print("index is: \(index) and the value is: \(cities[index])"  )
+            print("index is: \(index) and the value is: \(cities[index])")
+            var i = 0
+            for weather in Weathers{
+                if(weather.city == (cities[index])){
+                    Weathers.remove(at: i)
+                }
+                i+=1
+            }
             cities.remove(at: index)
             defaults.set(cities, forKey: "cities")
+            print("Cities count is \(cities.count)")
             tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.fade)
+            
+            self.apiCallCount-=1
+            
         }
     }
     
@@ -150,7 +163,6 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
             }.resume()
            
         }
-         
     }
     
   
@@ -159,13 +171,9 @@ class ViewController: UIViewController, UITableViewDelegate, UITableViewDataSour
         for i in 0..<Weathers.count{
             var item = Weathers[i]
              if(tmpCelsius){
-                print("item temp before: \(item.temperature)")
                 item.temperature = celciusToFahrenheit(item.temperature)
-                print("item temp after: \(item.temperature)")
                        }else{
-                print("item temp before: \(item.temperature)")
                 item.temperature = fahrenheitToCelcius(item.temperature)
-                print("item temp after: \(item.temperature)")
                        }
             Weathers[i].temperature = item.temperature
         }
